@@ -1,0 +1,900 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Laryus Firmware — Private Firmware</title>
+  <meta name="description" content="Laryus Firmware — приватные прошивки. Индивидуальные сборки. Премиальный сервис." />
+  <style>
+    :root{
+      --bg:#05060a;
+      --card:rgba(255,255,255,.06);
+      --card2:rgba(255,255,255,.08);
+      --stroke:rgba(255,255,255,.14);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.62);
+      --gold1:#ffdf8a;
+      --gold2:#b8872f;
+      --ok:#37d67a;
+      --bad:#ff4d4d;
+      --shadow: 0 18px 55px rgba(0,0,0,.55);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      color:var(--text);
+      background: var(--bg);
+      overflow-x:hidden;
+    }
+
+    /* фон без лесенки: много слоёв + зерно */
+    .bg{
+      position:fixed; inset:0; z-index:-5;
+      background:
+        radial-gradient(1100px 600px at 20% 10%, rgba(255,215,130,.16), transparent 60%),
+        radial-gradient(900px 520px at 80% 30%, rgba(130,200,255,.12), transparent 60%),
+        radial-gradient(900px 520px at 50% 80%, rgba(200,130,255,.10), transparent 60%),
+        linear-gradient(180deg, #05060a 0%, #070a12 40%, #04050a 100%);
+      filter:saturate(115%);
+    }
+    .grain{
+      position:fixed; inset:-20%;
+      z-index:-4;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+      opacity:.14;
+      transform:rotate(2deg);
+      pointer-events:none;
+      mix-blend-mode:overlay;
+    }
+    .vignette{
+      position:fixed; inset:0; z-index:-3;
+      background: radial-gradient(60% 60% at 50% 40%, transparent 0%, rgba(0,0,0,.55) 70%, rgba(0,0,0,.82) 100%);
+      pointer-events:none;
+    }
+
+    a{color:inherit; text-decoration:none}
+    .wrap{max-width:1180px; margin:0 auto; padding:28px 18px 70px}
+
+    /* header */
+    header{
+      position:sticky; top:0;
+      z-index:50;
+      backdrop-filter: blur(14px);
+      background: linear-gradient(180deg, rgba(5,6,10,.82), rgba(5,6,10,.45));
+      border-bottom:1px solid rgba(255,255,255,.08);
+    }
+    .topbar{
+      max-width:1180px; margin:0 auto;
+      padding:14px 18px;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:12px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      letter-spacing:.3px;
+    }
+    .logo{
+      width:42px; height:42px; border-radius:14px;
+      background:
+        radial-gradient(18px 18px at 30% 30%, rgba(255,255,255,.35), transparent 60%),
+        linear-gradient(135deg, rgba(255,215,130,.95), rgba(184,135,47,.92));
+      box-shadow: 0 18px 40px rgba(0,0,0,.45);
+      position:relative;
+      overflow:hidden;
+    }
+    .logo:after{
+      content:"";
+      position:absolute; inset:-40%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,.42), transparent);
+      transform: rotate(20deg);
+      animation: shine 5.5s infinite linear;
+      opacity:.55;
+    }
+    @keyframes shine{0%{transform:translateX(-40%) rotate(20deg)}100%{transform:translateX(40%) rotate(20deg)}}
+
+    .brand b{font-size:15px}
+    .brand small{display:block; font-size:12px; color:var(--muted); margin-top:2px}
+
+    nav{
+      display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .navlink{
+      font-size:13px; color:rgba(255,255,255,.78);
+      padding:8px 10px; border-radius:12px;
+      transition:.2s ease;
+    }
+    .navlink:hover{background:rgba(255,255,255,.06); color:rgba(255,255,255,.95)}
+    .btn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color:rgba(255,255,255,.92);
+      padding:10px 14px;
+      border-radius:14px;
+      cursor:pointer;
+      transition:.2s ease;
+      font-weight:600;
+      font-size:13px;
+    }
+    .btn:hover{transform: translateY(-1px); border-color: rgba(255,255,255,.22)}
+    .btn.primary{
+      border:none;
+      background: linear-gradient(135deg, rgba(255,215,130,.95), rgba(184,135,47,.92));
+      color:#160f05;
+      box-shadow: 0 18px 40px rgba(0,0,0,.45);
+    }
+    .btn.primary:hover{filter:saturate(115%); transform:translateY(-1px)}
+    .btn.danger{
+      border:1px solid rgba(255,77,77,.45);
+      background: rgba(255,77,77,.10);
+    }
+
+    /* hero */
+    .hero{
+      padding:46px 0 20px;
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:22px;
+      align-items:stretch;
+    }
+    @media(max-width:980px){.hero{grid-template-columns:1fr}}
+    .heroCard{
+      border-radius:26px;
+      background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.04));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      padding:28px;
+      position:relative;
+      overflow:hidden;
+    }
+    .heroCard:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(600px 250px at 15% 20%, rgba(255,215,130,.22), transparent 55%),
+        radial-gradient(450px 200px at 70% 40%, rgba(150,210,255,.16), transparent 60%);
+      pointer-events:none;
+      opacity:.9;
+    }
+    .heroCard > *{position:relative}
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 12px;
+      border-radius:999px;
+      background: rgba(0,0,0,.28);
+      border:1px solid rgba(255,255,255,.12);
+      color:rgba(255,255,255,.86);
+      font-size:12px;
+    }
+    .badge .dot{
+      width:8px; height:8px; border-radius:999px;
+      background: linear-gradient(135deg, var(--gold1), var(--gold2));
+      box-shadow: 0 0 0 4px rgba(255,215,130,.12);
+    }
+    h1{
+      margin:16px 0 10px;
+      font-size:44px;
+      line-height:1.08;
+      letter-spacing:-.5px;
+    }
+    @media(max-width:520px){h1{font-size:34px}}
+    .lead{
+      margin:0 0 18px;
+      color:rgba(255,255,255,.72);
+      font-size:15px;
+      line-height:1.7;
+      max-width:58ch;
+    }
+    .heroActions{display:flex; gap:10px; flex-wrap:wrap}
+    .heroStats{
+      margin-top:18px;
+      display:grid; grid-template-columns:repeat(3,1fr);
+      gap:10px;
+    }
+    @media(max-width:520px){.heroStats{grid-template-columns:1fr}}
+    .stat{
+      border-radius:18px;
+      background: rgba(0,0,0,.22);
+      border:1px solid rgba(255,255,255,.10);
+      padding:12px 12px;
+    }
+    .stat b{display:block; font-size:14px}
+    .stat span{display:block; margin-top:4px; color:var(--muted); font-size:12px}
+
+    /* right */
+    .sideCard{
+      border-radius:26px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.035));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      padding:22px;
+      position:relative;
+      overflow:hidden;
+    }
+    .sideCard:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(420px 220px at 50% 20%, rgba(255,215,130,.14), transparent 60%);
+      opacity:.85;
+      pointer-events:none;
+    }
+    .sideCard > *{position:relative}
+    .miniTitle{font-size:13px; color:rgba(255,255,255,.70); margin:0 0 12px}
+    .authBox{
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.20);
+      padding:14px;
+    }
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .input{
+      width:100%;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(255,255,255,.06);
+      color:rgba(255,255,255,.92);
+      padding:11px 12px;
+      outline:none;
+      font-size:13px;
+    }
+    .input:focus{border-color: rgba(255,215,130,.42); box-shadow: 0 0 0 4px rgba(255,215,130,.08)}
+    label{font-size:12px; color:rgba(255,255,255,.66); display:block; margin:10px 0 6px}
+
+    /* sections */
+    section{padding:18px 0}
+    .sectionTitle{
+      margin:18px 0 10px;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .sectionSub{margin:0 0 14px; color:var(--muted); font-size:13px}
+
+    /* pricing */
+    .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+    @media(max-width:980px){.grid3{grid-template-columns:1fr}}
+    .plan{
+      border-radius:24px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.035));
+      border:1px solid rgba(255,255,255,.12);
+      padding:18px;
+      box-shadow: var(--shadow);
+      position:relative;
+      overflow:hidden;
+    }
+    .plan:before{
+      content:"";
+      position:absolute; inset:-2px;
+      background: radial-gradient(380px 200px at 30% 0%, rgba(255,215,130,.13), transparent 65%);
+      opacity:.8;
+      pointer-events:none;
+    }
+    .plan > *{position:relative}
+    .planHead{display:flex; align-items:flex-start; justify-content:space-between; gap:10px}
+    .planName{font-weight:800; letter-spacing:.2px}
+    .price{
+      font-size:26px; font-weight:900;
+      background: linear-gradient(135deg, rgba(255,215,130,.98), rgba(184,135,47,.92));
+      -webkit-background-clip:text; background-clip:text;
+      color:transparent;
+      margin:10px 0 12px;
+    }
+    .list{margin:0; padding-left:18px; color:rgba(255,255,255,.76); font-size:13px; line-height:1.65}
+    .list li{margin:6px 0}
+    .plan .btn{width:100%; margin-top:14px}
+
+    /* gallery admin */
+    .gallery{
+      border-radius:26px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.035));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      padding:18px;
+    }
+    .galleryGrid{
+      display:grid; grid-template-columns:repeat(3,1fr); gap:12px;
+    }
+    @media(max-width:980px){.galleryGrid{grid-template-columns:1fr}}
+    .ph{
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      overflow:hidden;
+      position:relative;
+      min-height:170px;
+    }
+    .ph img{width:100%; height:100%; object-fit:cover; display:block; opacity:.95}
+    .ph .cap{
+      position:absolute; left:14px; bottom:12px;
+      font-size:12px; color:rgba(255,255,255,.86);
+      background: rgba(0,0,0,.35);
+      border:1px solid rgba(255,255,255,.10);
+      padding:6px 10px; border-radius:999px;
+      backdrop-filter: blur(10px);
+    }
+    .adminTools{
+      margin-top:12px;
+      display:none;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .adminTools.show{display:flex}
+    .note{
+      font-size:12px; color:rgba(255,255,255,.62);
+    }
+
+    /* FAQ */
+    .faqGrid{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+    @media(max-width:980px){.faqGrid{grid-template-columns:1fr}}
+    .faqItem{
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      overflow:hidden;
+    }
+    .faqQ{
+      width:100%;
+      padding:16px 16px;
+      display:flex; align-items:center; justify-content:space-between;
+      cursor:pointer;
+      background:transparent;
+      border:0;
+      color:rgba(255,255,255,.92);
+      font-weight:700;
+      font-size:13px;
+      text-align:left;
+    }
+    .faqQ span{color:rgba(255,255,255,.7); font-weight:600}
+    .faqA{
+      padding:0 16px 16px;
+      color:rgba(255,255,255,.70);
+      font-size:13px;
+      line-height:1.65;
+      display:none;
+    }
+    .faqItem.open .faqA{display:block}
+    .chev{transition:.2s ease}
+    .faqItem.open .chev{transform:rotate(180deg)}
+
+    /* form */
+    .formCard{
+      border-radius:26px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.035));
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: var(--shadow);
+      padding:18px;
+    }
+    .two{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    @media(max-width:980px){.two{grid-template-columns:1fr}}
+    textarea.input{min-height:110px; resize:vertical}
+    .toast{
+      position:fixed; right:18px; bottom:18px; z-index:999;
+      padding:12px 14px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(14px);
+      color:rgba(255,255,255,.9);
+      display:none;
+      max-width:min(420px, calc(100vw - 36px));
+      box-shadow: var(--shadow);
+      font-size:13px;
+    }
+    .toast.show{display:block}
+    footer{padding:28px 0 0; color:rgba(255,255,255,.55); font-size:12px}
+    .sep{height:1px; background:rgba(255,255,255,.08); margin:18px 0}
+    .pill{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:8px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.22);
+      color:rgba(255,255,255,.75);
+      font-size:12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="grain"></div>
+  <div class="vignette"></div>
+
+  <header>
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <b>Laryus Firmware</b>
+          <small>Private firmware • Premium service</small>
+        </div>
+      </div>
+      <nav>
+        <a class="navlink" href="#pricing">Тарифы</a>
+        <a class="navlink" href="#gallery">Галерея</a>
+        <a class="navlink" href="#faq">FAQ</a>
+        <a class="navlink" href="#request">Заявка</a>
+        <button class="btn" id="btnOpenAuth">Вход</button>
+        <button class="btn primary" id="btnScrollRequest">Оставить заявку</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="hero" id="top">
+      <div class="heroCard">
+        <div class="badge"><span class="dot"></span> Премиальный сервис / Индивидуальные сборки</div>
+        <h1>Приватные прошивки.<br/>Статус, стабильность, сервис.</h1>
+        <p class="lead">
+          Laryus Firmware — сервис индивидуальных прошивок. Каждый тариф — отдельная прошивка.
+          Работаем аккуратно и строго по параметрам клиента.
+        </p>
+
+        <div class="heroActions">
+          <button class="btn primary" id="btnScrollPricing">Смотреть тарифы</button>
+          <a class="btn" href="#request">Связаться</a>
+        </div>
+
+        <div class="heroStats">
+          <div class="stat"><b>Индивидуальная сборка</b><span>под параметры клиента</span></div>
+          <div class="stat"><b>Поддержка</b><span>в течение срока тарифа</span></div>
+          <div class="stat"><b>Статус</b><span>premium-позиционирование</span></div>
+        </div>
+      </div>
+
+      <div class="sideCard" id="auth">
+        <p class="miniTitle">Аккаунт клиента</p>
+
+        <div class="authBox" id="authBox">
+          <div id="authStateAnon">
+            <label>Email</label>
+            <input class="input" id="loginEmail" type="email" placeholder="you@email.com" autocomplete="email">
+            <label>Пароль</label>
+            <input class="input" id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password">
+            <div class="row" style="margin-top:12px">
+              <button class="btn primary" id="btnLogin">Войти</button>
+              <button class="btn" id="btnShowRegister">Регистрация</button>
+            </div>
+          </div>
+
+          <div id="authStateUser" style="display:none">
+            <div class="pill">Вы вошли как: <b id="userEmail" style="margin-left:6px"></b></div>
+            <div class="row" style="margin-top:12px">
+              <button class="btn" id="btnLogout">Выйти</button>
+              <button class="btn" id="btnOpenAdmin" style="display:none">Админ-панель</button>
+            </div>
+            <div class="note" style="margin-top:10px">Заявки будут сохраняться в системе.</div>
+          </div>
+
+          <div id="authStateRegister" style="display:none">
+            <div class="pill">Регистрация</div>
+            <label>Email</label>
+            <input class="input" id="regEmail" type="email" placeholder="you@email.com" autocomplete="email">
+            <label>Пароль</label>
+            <input class="input" id="regPass" type="password" placeholder="минимум 8 символов" autocomplete="new-password">
+            <div class="row" style="margin-top:12px">
+              <button class="btn primary" id="btnRegister">Получить код</button>
+              <button class="btn" id="btnBackLogin">Назад</button>
+            </div>
+
+            <div id="verifyBlock" style="display:none; margin-top:12px">
+              <label>Код из письма</label>
+              <input class="input" id="regCode" type="text" placeholder="123456" inputmode="numeric">
+              <div class="row" style="margin-top:12px">
+                <button class="btn primary" id="btnVerify">Подтвердить</button>
+              </div>
+              <div class="note" style="margin-top:8px">Если письма нет — проверь “Спам”.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section id="pricing">
+      <h2 class="sectionTitle">Тарифы</h2>
+      <p class="sectionSub">3 уровня сервиса. Каждый тариф — отдельная прошивка под клиента.</p>
+
+      <div class="grid3">
+        <div class="plan">
+          <div class="planHead">
+            <div>
+              <div class="planName">EAC / BE</div>
+              <div class="note">Базовый уровень</div>
+            </div>
+            <div class="badge"><span class="dot"></span> Standard</div>
+          </div>
+          <div class="price">8 000 ₽</div>
+          <ul class="list">
+            <li>Поддержка античитов: <b>EAC / BE</b></li>
+            <li>Индивидуальная прошивка под клиента</li>
+            <li>Сопровождение по установке</li>
+            <li>Техническая поддержка</li>
+          </ul>
+          <button class="btn primary" data-plan="EAC/BE — 8 000 ₽">Выбрать</button>
+        </div>
+
+        <div class="plan">
+          <div class="planHead">
+            <div>
+              <div class="planName">ACE / EAC / BE / VGK</div>
+              <div class="note">Оптимальный выбор</div>
+            </div>
+            <div class="badge"><span class="dot"></span> Pro</div>
+          </div>
+          <div class="price">13 000 ₽</div>
+          <ul class="list">
+            <li>Поддержка античитов: <b>ACE / EAC / BE / VGK</b></li>
+            <li>Индивидуальная прошивка под клиента</li>
+            <li>Приоритет поддержки</li>
+            <li>Настройка параметров</li>
+          </ul>
+          <button class="btn primary" data-plan="ACE/EAC/BE/VGK — 13 000 ₽">Выбрать</button>
+        </div>
+
+        <div class="plan">
+          <div class="planHead">
+            <div>
+              <div class="planName">Полный пакет</div>
+              <div class="note">Максимальный уровень</div>
+            </div>
+            <div class="badge"><span class="dot"></span> Elite</div>
+          </div>
+          <div class="price">20 000 ₽</div>
+          <ul class="list">
+            <li>Поддержка: <b>все античиты</b></li>
+            <li>Индивидуальная прошивка под клиента</li>
+            <li>Максимальный приоритет</li>
+            <li>Персональный контроль заявки</li>
+          </ul>
+          <button class="btn primary" data-plan="Полный пакет — 20 000 ₽">Выбрать</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="gallery">
+      <h2 class="sectionTitle">Галерея</h2>
+      <p class="sectionSub">Админ может менять изображения прямо через сайт.</p>
+
+      <div class="gallery">
+        <div class="galleryGrid" id="galleryGrid">
+          <div class="ph"><img id="img1" alt="Фото 1"><div class="cap">Premium</div></div>
+          <div class="ph"><img id="img2" alt="Фото 2"><div class="cap">Service</div></div>
+          <div class="ph"><img id="img3" alt="Фото 3"><div class="cap">Status</div></div>
+        </div>
+
+        <div class="adminTools" id="adminTools">
+          <span class="pill">Админ режим активен</span>
+          <input class="input" id="filePick" type="file" accept="image/*" />
+          <select class="input" id="slotPick" style="max-width:220px">
+            <option value="1">Фото 1</option>
+            <option value="2">Фото 2</option>
+            <option value="3">Фото 3</option>
+          </select>
+          <button class="btn primary" id="btnUpload">Загрузить</button>
+          <span class="note">Файлы сохраняются на сервере (закрытый backend).</span>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <h2 class="sectionTitle">FAQ</h2>
+      <p class="sectionSub">Ответы на частые вопросы перед оформлением.</p>
+
+      <div class="faqGrid" id="faqGrid">
+        <div class="faqItem">
+          <button class="faqQ" type="button">
+            Прошивка индивидуальная?
+            <span class="chev">▾</span>
+          </button>
+          <div class="faqA">
+            Да. Каждый тариф — это отдельная индивидуальная прошивка под параметры клиента.
+          </div>
+        </div>
+
+        <div class="faqItem">
+          <button class="faqQ" type="button">
+            Как проходит покупка?
+            <span class="chev">▾</span>
+          </button>
+          <div class="faqA">
+            Вы выбираете тариф и оставляете заявку. Далее мы связываемся, уточняем параметры и подтверждаем заказ.
+          </div>
+        </div>
+
+        <div class="faqItem">
+          <button class="faqQ" type="button">
+            Как быстро выполняется заявка?
+            <span class="chev">▾</span>
+          </button>
+          <div class="faqA">
+            Обычно — в течение дня. В зависимости от очереди и сложности параметров.
+          </div>
+        </div>
+
+        <div class="faqItem">
+          <button class="faqQ" type="button">
+            Есть поддержка после покупки?
+            <span class="chev">▾</span>
+          </button>
+          <div class="faqA">
+            Да, поддержка входит в тариф. В Pro/Elite приоритет выше.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="request">
+      <h2 class="sectionTitle">Оставить заявку</h2>
+      <p class="sectionSub">Заявка сохраняется в системе и отправляется на почту админа.</p>
+
+      <div class="formCard">
+        <div class="two">
+          <div>
+            <label>Ваш Telegram</label>
+            <input class="input" id="tg" placeholder="@username" />
+          </div>
+          <div>
+            <label>Тариф</label>
+            <select class="input" id="plan">
+              <option value="EAC/BE — 8 000 ₽">EAC / BE — 8 000 ₽</option>
+              <option value="ACE/EAC/BE/VGK — 13 000 ₽">ACE / EAC / BE / VGK — 13 000 ₽</option>
+              <option value="Полный пакет — 20 000 ₽">Полный пакет — 20 000 ₽</option>
+            </select>
+          </div>
+        </div>
+
+        <label>Комментарий</label>
+        <textarea class="input" id="msg" placeholder="Опишите параметры / пожелания"></textarea>
+
+        <div class="row" style="margin-top:12px">
+          <button class="btn primary" id="btnSend">Отправить заявку</button>
+          <span class="note">Если вы не вошли — заявка всё равно отправится, но лучше войти.</span>
+        </div>
+      </div>
+
+      <div class="sep"></div>
+      <div class="row">
+        <span class="pill">Почта поддержки: <b style="margin-left:6px">ggta63166@gmail.com</b></span>
+      </div>
+    </section>
+
+    <footer>
+      <div class="sep"></div>
+      <div class="row" style="justify-content:space-between; gap:10px">
+        <div>© <span id="year"></span> Laryus Firmware</div>
+        <div class="note">Premium / Status / Service</div>
+      </div>
+    </footer>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ====== CONFIG ======
+    // сюда вставишь адрес backend после деплоя (Render/Railway)
+    const API_BASE = "https://YOUR_BACKEND_URL"; // например: https://laryus-firmware.onrender.com
+
+    // ====== helpers ======
+    const $ = (id)=>document.getElementById(id);
+    const toast = (text, ok=true)=>{
+      const t=$("toast");
+      t.textContent=text;
+      t.style.borderColor = ok ? "rgba(55,214,122,.45)" : "rgba(255,77,77,.45)";
+      t.style.background = ok ? "rgba(55,214,122,.10)" : "rgba(255,77,77,.10)";
+      t.classList.add("show");
+      setTimeout(()=>t.classList.remove("show"), 3200);
+    };
+    const scrollToId = (id)=>document.querySelector(id).scrollIntoView({behavior:"smooth", block:"start"});
+
+    $("year").textContent = new Date().getFullYear();
+
+    // ====== nav buttons ======
+    $("btnScrollPricing").onclick=()=>scrollToId("#pricing");
+    $("btnScrollRequest").onclick=()=>scrollToId("#request");
+    $("btnOpenAuth").onclick=()=>scrollToId("#auth");
+
+    // ====== FAQ without bug ======
+    // исправление: открывается ТОЛЬКО текущий вопрос, без пустых соседних
+    document.querySelectorAll(".faqItem").forEach(item=>{
+      const btn = item.querySelector(".faqQ");
+      btn.addEventListener("click", ()=>{
+        // закрываем остальные
+        document.querySelectorAll(".faqItem.open").forEach(x=>{
+          if(x!==item) x.classList.remove("open");
+        });
+        item.classList.toggle("open");
+      });
+    });
+
+    // ====== pricing choose ======
+    document.querySelectorAll("[data-plan]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        $("plan").value = btn.getAttribute("data-plan");
+        scrollToId("#request");
+      });
+    });
+
+    // ====== auth UI ======
+    const state = {
+      token: localStorage.getItem("lf_token") || null,
+      email: localStorage.getItem("lf_email") || null,
+      isAdmin: localStorage.getItem("lf_admin")==="1"
+    };
+
+    function setAuthUI(){
+      const anon = $("authStateAnon");
+      const user = $("authStateUser");
+      const reg  = $("authStateRegister");
+      const adminBtn = $("btnOpenAdmin");
+      const adminTools = $("adminTools");
+
+      if(state.token){
+        anon.style.display="none";
+        reg.style.display="none";
+        user.style.display="block";
+        $("userEmail").textContent = state.email || "user";
+
+        adminBtn.style.display = state.isAdmin ? "inline-flex" : "none";
+        adminTools.classList.toggle("show", !!state.isAdmin);
+      }else{
+        anon.style.display="block";
+        user.style.display="none";
+        reg.style.display="none";
+        adminBtn.style.display="none";
+        adminTools.classList.remove("show");
+      }
+    }
+    setAuthUI();
+
+    $("btnShowRegister").onclick=()=>{
+      $("authStateAnon").style.display="none";
+      $("authStateUser").style.display="none";
+      $("authStateRegister").style.display="block";
+    };
+    $("btnBackLogin").onclick=()=>{
+      $("authStateAnon").style.display="block";
+      $("authStateRegister").style.display="none";
+    };
+
+    // ====== API ======
+    async function api(path, method="GET", body=null, isForm=false){
+      const headers = {};
+      if(!isForm) headers["Content-Type"]="application/json";
+      if(state.token) headers["Authorization"]="Bearer "+state.token;
+
+      const res = await fetch(API_BASE+path, {
+        method,
+        headers,
+        body: body ? (isForm?body:JSON.stringify(body)) : null
+      });
+      const data = await res.json().catch(()=>({}));
+      if(!res.ok) throw new Error(data?.error || "Ошибка запроса");
+      return data;
+    }
+
+    // ====== login ======
+    $("btnLogin").onclick = async ()=>{
+      try{
+        const email = $("loginEmail").value.trim();
+        const password = $("loginPass").value;
+        if(!email || !password) return toast("Введите email и пароль", false);
+
+        const r = await api("/auth/login","POST",{email,password});
+        state.token = r.token;
+        state.email = r.email;
+        state.isAdmin = !!r.isAdmin;
+
+        localStorage.setItem("lf_token", state.token);
+        localStorage.setItem("lf_email", state.email);
+        localStorage.setItem("lf_admin", state.isAdmin ? "1":"0");
+
+        toast("Успешный вход");
+        setAuthUI();
+      }catch(e){
+        toast(e.message, false);
+      }
+    };
+
+    $("btnLogout").onclick = ()=>{
+      state.token=null; state.email=null; state.isAdmin=false;
+      localStorage.removeItem("lf_token");
+      localStorage.removeItem("lf_email");
+      localStorage.removeItem("lf_admin");
+      toast("Вы вышли");
+      setAuthUI();
+    };
+
+    // ====== register ======
+    $("btnRegister").onclick = async ()=>{
+      try{
+        const email = $("regEmail").value.trim();
+        const password = $("regPass").value;
+        if(!email || !password || password.length<8) return toast("Введите email и пароль (мин 8)", false);
+
+        await api("/auth/register","POST",{email,password});
+        $("verifyBlock").style.display="block";
+        toast("Код отправлен на почту");
+      }catch(e){
+        toast(e.message, false);
+      }
+    };
+
+    $("btnVerify").onclick = async ()=>{
+      try{
+        const email = $("regEmail").value.trim();
+        const code = $("regCode").value.trim();
+        if(!code) return toast("Введите код", false);
+
+        const r = await api("/auth/verify","POST",{email,code});
+        state.token = r.token;
+        state.email = r.email;
+        state.isAdmin = !!r.isAdmin;
+
+        localStorage.setItem("lf_token", state.token);
+        localStorage.setItem("lf_email", state.email);
+        localStorage.setItem("lf_admin", state.isAdmin ? "1":"0");
+
+        toast("Аккаунт подтвержден");
+        setAuthUI();
+      }catch(e){
+        toast(e.message, false);
+      }
+    };
+
+    // ====== request form ======
+    $("btnSend").onclick = async ()=>{
+      try{
+        const telegram = $("tg").value.trim();
+        const plan = $("plan").value;
+        const message = $("msg").value.trim();
+        if(!telegram || !telegram.startsWith("@")) return toast("Укажите Telegram в формате @username", false);
+        if(!message || message.length < 5) return toast("Добавьте комментарий", false);
+
+        await api("/requests","POST",{telegram, plan, message});
+        toast("Заявка отправлена и сохранена");
+        $("msg").value="";
+      }catch(e){
+        toast(e.message, false);
+      }
+    };
+
+    // ====== gallery load ======
+    async function loadGallery(){
+      try{
+        const r = await api("/gallery","GET");
+        $("img1").src = r.images[0] || "";
+        $("img2").src = r.images[1] || "";
+        $("img3").src = r.images[2] || "";
+      }catch(e){
+        // fallback placeholders
+        const ph = (n)=>`https://picsum.photos/seed/laryus_${n}/900/600`;
+        $("img1").src = ph(1);
+        $("img2").src = ph(2);
+        $("img3").src = ph(3);
+      }
+    }
+    loadGallery();
+
+    // ====== admin upload ======
+    $("btnUpload").onclick = async ()=>{
+      try{
+        if(!state.isAdmin) return toast("Только админ", false);
+        const file = $("filePick").files[0];
+        const slot = $("slotPick").value;
+        if(!file) return toast("Выберите файл", false);
+
+        const fd = new FormData();
+        fd.append("image", file);
+        fd.append("slot", slot);
+
+        const r = await api("/gallery/upload","POST", fd, true);
+        toast("Фото обновлено");
+        await loadGallery();
+      }catch(e){
+        toast(e.message, false);
+      }
+    };
+  </script>
+</body>
+</html>
